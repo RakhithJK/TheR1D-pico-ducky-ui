@@ -6,11 +6,9 @@
 import time
 import digitalio
 from digitalio import DigitalInOut, Pull
-from adafruit_debouncer import Debouncer
+# from adafruit_debouncer import Debouncer
 import board
 from board import *
-import pwmio
-import asyncio
 import usb_hid
 from adafruit_hid.keyboard import Keyboard
 
@@ -105,23 +103,6 @@ kbd = Keyboard(usb_hid.devices)
 layout = KeyboardLayout(kbd)
 
 
-
-
-#init button
-button1_pin = DigitalInOut(GP22) # defaults to input
-button1_pin.pull = Pull.UP      # turn on internal pull-up resistor
-button1 =  Debouncer(button1_pin)
-
-#init payload selection switch
-payload1Pin = digitalio.DigitalInOut(GP4)
-payload1Pin.switch_to_input(pull=digitalio.Pull.UP)
-payload2Pin = digitalio.DigitalInOut(GP5)
-payload2Pin.switch_to_input(pull=digitalio.Pull.UP)
-payload3Pin = digitalio.DigitalInOut(GP10)
-payload3Pin.switch_to_input(pull=digitalio.Pull.UP)
-payload4Pin = digitalio.DigitalInOut(GP11)
-payload4Pin.switch_to_input(pull=digitalio.Pull.UP)
-
 def getProgrammingStatus():
     # check GP0 for setup mode
     # see setup mode for instructions
@@ -137,128 +118,23 @@ def runScript(file):
     global defaultDelay
 
     duckyScriptPath = file
-    try:
-        f = open(duckyScriptPath,"r",encoding='utf-8')
-        previousLine = ""
-        for line in f:
-            line = line.rstrip()
-            if(line[0:6] == "REPEAT"):
-                for i in range(int(line[7:])):
-                    #repeat the last command
-                    parseLine(previousLine)
-                    time.sleep(float(defaultDelay)/1000)
-            else:
-                parseLine(line)
-                previousLine = line
-            time.sleep(float(defaultDelay)/1000)
-    except OSError as e:
-        print("Unable to open file ", file)
+    # try:
+    f = open(duckyScriptPath, "r", encoding='utf-8')
+    previousLine = ""
+    for line in f:
+        line = line.rstrip()
+        if(line[0:6] == "REPEAT"):
+            for i in range(int(line[7:])):
+                #repeat the last command
+                parseLine(previousLine)
+                time.sleep(float(defaultDelay)/1000)
+        else:
+            parseLine(line)
+            previousLine = line
+        time.sleep(float(defaultDelay)/1000)
+    # except OSError as e:
+    #     print("Unable to open file ", file)
 
 def selectPayload():
-    global payload1Pin, payload2Pin, payload3Pin, payload4Pin
     payload = "payload.dd"
-    # check switch status
-    # payload1 = GPIO4 to GND
-    # payload2 = GPIO5 to GND
-    # payload3 = GPIO10 to GND
-    # payload4 = GPIO11 to GND
-    payload1State = not payload1Pin.value
-    payload2State = not payload2Pin.value
-    payload3State = not payload3Pin.value
-    payload4State = not payload4Pin.value
-
-    if(payload1State == True):
-        payload = "payload.dd"
-
-    elif(payload2State == True):
-        payload = "payload2.dd"
-
-    elif(payload3State == True):
-        payload = "payload3.dd"
-
-    elif(payload4State == True):
-        payload = "payload4.dd"
-
-    else:
-        # if all pins are high, then no switch is present
-        # default to payload1
-        payload = "payload.dd"
-
     return payload
-
-async def blink_led(led):
-    print("Blink")
-    if(board.board_id == 'raspberry_pi_pico'):
-        blink_pico_led(led)
-    elif(board.board_id == 'raspberry_pi_pico_w'):
-        blink_pico_w_led(led)
-
-async def blink_pico_led(led):
-    print("starting blink_pico_led")
-    led_state = False
-    while True:
-        if led_state:
-            #led_pwm_up(led)
-            #print("led up")
-            for i in range(100):
-                # PWM LED up and down
-                if i < 50:
-                    led.duty_cycle = int(i * 2 * 65535 / 100)  # Up
-                await asyncio.sleep(0.01)
-            led_state = False
-        else:
-            #led_pwm_down(led)
-            #print("led down")
-            for i in range(100):
-                # PWM LED up and down
-                if i >= 50:
-                    led.duty_cycle = 65535 - int((i - 50) * 2 * 65535 / 100)  # Down
-                await asyncio.sleep(0.01)
-            led_state = True
-        await asyncio.sleep(0)
-
-async def blink_pico_w_led(led):
-    print("starting blink_pico_w_led")
-    led_state = False
-    while True:
-        if led_state:
-            #print("led on")
-            led.value = 1
-            await asyncio.sleep(0.5)
-            led_state = False
-        else:
-            #print("led off")
-            led.value = 0
-            await asyncio.sleep(0.5)
-            led_state = True
-        await asyncio.sleep(0.5)
-
-async def monitor_buttons(button1):
-    global inBlinkeyMode, inMenu, enableRandomBeep, enableSirenMode,pixel
-    print("starting monitor_buttons")
-    button1Down = False
-    while True:
-        button1.update()
-
-        button1Pushed = button1.fell
-        button1Released = button1.rose
-        button1Held = not button1.value
-
-        if(button1Pushed):
-            print("Button 1 pushed")
-            button1Down = True
-        if(button1Released):
-            print("Button 1 released")
-            if(button1Down):
-                print("push and released")
-
-        if(button1Released):
-            if(button1Down):
-                # Run selected payload
-                payload = selectPayload()
-                print("Running ", payload)
-                runScript(payload)
-                print("Done")
-            button1Down = False
-
-        await asyncio.sleep(0)

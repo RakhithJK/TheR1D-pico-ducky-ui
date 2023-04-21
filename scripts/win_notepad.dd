@@ -1,0 +1,6 @@
+REM Simple script to test.
+STRING notepad
+DELAY 1000
+STRING notepad
+DELAY 1000
+STRING notepad

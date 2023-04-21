@@ -1,0 +1,6 @@
+REM Simple script to type "Hello World!" 3 times.
+STRING Hello World!
+DELAY 1000
+STRING Hello World!
+DELAY 1000
+STRING Hello World!

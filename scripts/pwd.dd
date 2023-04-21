@@ -1,0 +1,6 @@
+REM Simple script to test.
+STRING pwd
+DELAY 1000
+STRING pwd
+DELAY 1000
+STRING pwd

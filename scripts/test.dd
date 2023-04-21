@@ -1,0 +1,6 @@
+REM Simple script to test.
+STRING test
+DELAY 1000
+STRING test
+DELAY 1000
+STRING test

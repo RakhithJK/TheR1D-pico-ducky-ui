@@ -1,0 +1,6 @@
+REM Simple script to test.
+STRING mac
+DELAY 1000
+STRING mac
+DELAY 1000
+STRING mac
